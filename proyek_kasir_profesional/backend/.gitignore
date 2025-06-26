@@ -1,0 +1,24 @@
+# Lingkungan Virtual
+venv/
+*.venv
+env/
+.env
+
+# File Bytecode Python
+__pycache__/
+*.py[cod]
+*.class
+
+# File Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# File Database
+*.db
+*.sqlite3
+
+# File OS
+.DS_Store
+Thumbs.db

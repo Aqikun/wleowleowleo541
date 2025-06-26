@@ -1,0 +1,22 @@
+# --- Core Framework ---
+fastapi
+uvicorn[standard]
+python-multipart
+
+# --- Database & ORM ---
+sqlalchemy
+alembic
+psycopg2-binary  # Untuk PostgreSQL (direkomendasikan untuk produksi)
+
+# --- Keamanan & Otentikasi ---
+passlib[bcrypt]
+python-jose[cryptography]
+
+# --- Validasi & Pengaturan ---
+pydantic
+pydantic-settings
+python-dotenv
+
+# --- Testing ---
+pytest
+httpx
