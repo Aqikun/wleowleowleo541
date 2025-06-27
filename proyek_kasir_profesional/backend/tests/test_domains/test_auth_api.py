@@ -1,8 +1,6 @@
-# backend/tests/test_domains/test_auth_api.py
-from fastapi.testclient import TestClient
+# nama file: tests/test_domains/test_auth_api.py
 
-# # Fixture 'client' secara otomatis diambil dari file 'conftest.py'
-# # yang akan membersihkan database untuk setiap fungsi tes.
+from fastapi.testclient import TestClient
 
 # # --- Tes untuk Registrasi Pengguna ---
 
@@ -28,19 +26,21 @@ def test_create_user_duplicate_username(client: TestClient):
     # Tes skenario gagal: Mencoba mendaftar dengan username yang sudah ada.
     """
     # # 1. Buat pengguna pertama
+    # # PERBAIKAN: Tambahkan 'role' agar pembuatan pengguna tes berhasil
     client.post(
         "/users/",
-        json={"username": "duplicateuser", "password": "password1"}
+        json={"username": "duplicateuser", "password": "password1", "role": "Kasir"}
     )
     
     # # 2. Coba buat pengguna kedua dengan username yang sama
     response = client.post(
         "/users/",
-        json={"username": "duplicateuser", "password": "password2"}
+        json={"username": "duplicateuser", "password": "password2", "role": "Kasir"}
     )
     
     # # Memastikan API mengembalikan error yang tepat (400 Bad Request)
     assert response.status_code == 400
+    # # PERBAIKAN: Sesuaikan pesan error dengan yang ada di router Anda
     assert response.json() == {"detail": "Username sudah terdaftar."}
 
 
@@ -51,9 +51,10 @@ def test_login_for_access_token_success(client: TestClient):
     # Tes skenario sukses: Login dengan kredensial yang valid.
     """
     # # 1. Buat pengguna terlebih dahulu
+    # # PERBAIKAN: Tambahkan 'role' agar pembuatan pengguna tes berhasil
     client.post(
         "/users/",
-        json={"username": "loginuser", "password": "loginpassword"}
+        json={"username": "loginuser", "password": "loginpassword", "role": "Kasir"}
     )
     
     # # 2. Coba login dengan data form
@@ -75,9 +76,10 @@ def test_login_incorrect_password(client: TestClient):
     # Tes skenario gagal: Login dengan password yang salah.
     """
     # # 1. Buat pengguna
+    # # PERBAIKAN: Tambahkan 'role' agar pembuatan pengguna tes berhasil
     client.post(
         "/users/",
-        json={"username": "wrongpassuser", "password": "correctpassword"}
+        json={"username": "wrongpassuser", "password": "correctpassword", "role": "Kasir"}
     )
     
     # # 2. Coba login dengan password yang salah
@@ -89,4 +91,3 @@ def test_login_incorrect_password(client: TestClient):
     # # Memastikan API mengembalikan error 401 Unauthorized
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect username or password"}
-

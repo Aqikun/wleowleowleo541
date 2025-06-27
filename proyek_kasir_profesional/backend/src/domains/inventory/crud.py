@@ -1,10 +1,9 @@
-# backend/src/domains/inventory/crud.py
+# nama file: src/domains/inventory/crud.py
+
 from sqlalchemy.orm import Session, joinedload
-
 from . import models, schemas
-from src.domains.products.models import Product
 
-# --- CRUD untuk Supplier (Sudah Ada) ---
+# --- CRUD untuk Supplier ---
 def get_supplier(db: Session, supplier_id: int):
     return db.query(models.Supplier).filter(models.Supplier.id == supplier_id).first()
 
@@ -32,17 +31,15 @@ def delete_supplier(db: Session, db_supplier: models.Supplier):
     db.commit()
     return db_supplier
 
-# --- CRUD BARU untuk Purchase Order ---
+# --- CRUD untuk Purchase Order ---
 def create_purchase_order(db: Session, po_data: schemas.PurchaseOrderCreate):
     """
     # Membuat Purchase Order baru beserta detail itemnya.
     """
-    # # Buat detail item PO terlebih dahulu
     po_detail_objects = [
         models.PurchaseOrderDetail(**item.model_dump()) for item in po_data.items
     ]
 
-    # # Buat PO utama dan hubungkan dengan detailnya
     db_po = models.PurchaseOrder(
         supplier_id=po_data.supplier_id,
         details=po_detail_objects
@@ -50,8 +47,11 @@ def create_purchase_order(db: Session, po_data: schemas.PurchaseOrderCreate):
     
     db.add(db_po)
     db.commit()
-    db.refresh(db_po)
-    return db_po
+    
+    # # PERBAIKAN: Alih-alih hanya me-refresh, kita ambil kembali PO yang baru dibuat
+    # # dengan semua relasinya (supplier dan details) sudah dimuat.
+    # # Ini memastikan respons API berisi semua data yang diharapkan oleh tes.
+    return get_purchase_order(db, po_id=db_po.id)
 
 def get_purchase_order(db: Session, po_id: int):
     """

@@ -1,25 +1,35 @@
-# backend/src/domains/transactions/schemas.py
+# nama file: src/domains/transactions/schemas.py
+
 from pydantic import BaseModel, ConfigDict
 from decimal import Decimal
 from datetime import datetime
 from typing import List
 
-# Skema untuk satu item dalam transaksi
+# --- User Schema for embedding in TransactionSchema ---
+# Kita butuh skema sederhana untuk menampilkan info kasir
+class UserSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    username: str
+
+# --- Transaction Detail Schemas ---
 class TransactionDetailBase(BaseModel):
     product_id: int
     quantity: int
-    price_at_transaction: Decimal
 
+# Skema ini digunakan saat MEMBUAT transaksi
 class TransactionDetailCreate(TransactionDetailBase):
-    pass
+    # Harga produk saat itu, dikirim dari client/frontend
+    price_at_transaction: Decimal
 
 class TransactionDetailSchema(TransactionDetailBase):
     model_config = ConfigDict(from_attributes=True)
-    
     id: int
-    transaction_id: int
+    
+    # PERBAIKAN: Ganti nama field agar cocok dengan model.py
+    price_per_item: Decimal
 
-# Skema untuk transaksi utama
+# --- Transaction Schemas ---
 class TransactionBase(BaseModel):
     pass
 
@@ -30,7 +40,13 @@ class TransactionSchema(TransactionBase):
     model_config = ConfigDict(from_attributes=True)
     
     id: int
-    user_id: int
     total_amount: Decimal
-    timestamp: datetime
+    
+    # PERBAIKAN: Ganti nama field agar cocok dengan model.py
+    created_at: datetime
+    cashier_id: int
+
     details: List[TransactionDetailSchema] = []
+    
+    # Tambahkan ini untuk menyertakan data kasir
+    cashier: UserSchema

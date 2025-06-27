@@ -1,4 +1,5 @@
-# backend/src/domains/transactions/crud.py
+# nama file: src/domains/transactions/crud.py
+
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException, status
 from decimal import Decimal
@@ -9,46 +10,42 @@ from src.domains.users.models import User as UserModel
 
 def create_transaction(db: Session, transaction_data: schemas.TransactionCreate, cashier: UserModel):
     """
-    # Membuat transaksi baru, melakukan validasi, dan mengurangi stok produk.
-    # Ini adalah fungsi inti dari sistem POS.
+    Membuat transaksi baru, melakukan validasi, dan mengurangi stok produk.
     """
     total_amount = Decimal(0)
     product_updates = []
     transaction_detail_objects = []
 
-    # # Validasi setiap item dalam transaksi
-    for item in transaction_data.items:
+    # PERBAIKAN: Lakukan perulangan pada 'transaction_data.details', bukan 'transaction_data.items'
+    for item in transaction_data.details:
         db_product = db.query(ProductModel).filter(ProductModel.id == item.product_id).first()
 
-        # # 1. Periksa apakah produk ada
         if not db_product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Produk dengan ID {item.product_id} tidak ditemukan."
             )
         
-        # # 2. Periksa apakah stok mencukupi
         if db_product.stock < item.quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Stok untuk produk '{db_product.name}' tidak mencukupi."
             )
         
-        # # 3. Hitung subtotal dan total
+        # Di sini kita gunakan harga dari database untuk keamanan
         sub_total = db_product.price * item.quantity
         total_amount += sub_total
         
-        # # Siapkan data untuk mengurangi stok dan membuat detail transaksi
         product_updates.append({"product": db_product, "new_stock": db_product.stock - item.quantity})
         transaction_detail_objects.append(
             models.TransactionDetail(
                 product_id=item.product_id,
                 quantity=item.quantity,
-                price_per_item=db_product.price
+                # Simpan harga aktual saat transaksi terjadi
+                price_per_item=item.price_at_transaction
             )
         )
 
-    # # Jika validasi berhasil, buat transaksi utama
     db_transaction = models.Transaction(
         total_amount=total_amount,
         cashier_id=cashier.id,
@@ -56,20 +53,18 @@ def create_transaction(db: Session, transaction_data: schemas.TransactionCreate,
     )
     db.add(db_transaction)
     
-    # # Kurangi stok produk
     for update in product_updates:
         update["product"].stock = update["new_stock"]
         db.add(update["product"])
         
-    # # Commit semua perubahan ke database
     db.commit()
-    db.refresh(db_transaction)
+    # Kita perlu memuat relasi agar bisa dikembalikan oleh API dengan lengkap
+    db.refresh(db_transaction, attribute_names=["details", "cashier"])
     return db_transaction
 
 def get_transactions(db: Session, skip: int = 0, limit: int = 100):
     """
-    # Mengambil riwayat transaksi.
-    # Menggunakan joinedload untuk efisiensi query (mirip JOIN di SQL).
+    Mengambil riwayat transaksi.
     """
     return (
         db.query(models.Transaction)
