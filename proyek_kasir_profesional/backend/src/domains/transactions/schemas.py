@@ -1,39 +1,36 @@
 # backend/src/domains/transactions/schemas.py
 from pydantic import BaseModel, ConfigDict
-from typing import List, Optional
 from decimal import Decimal
 from datetime import datetime
+from typing import List
 
-from src.domains.products.schemas import Product as ProductSchema
-from src.domains.users.schemas import User as UserSchema
-
-# # --- Skema untuk Item dalam Transaksi ---
-
-# # Skema untuk menerima item dari frontend saat membuat transaksi baru
-class TransactionItemCreate(BaseModel):
+# Skema untuk satu item dalam transaksi
+class TransactionDetailBase(BaseModel):
     product_id: int
     quantity: int
+    price_at_transaction: Decimal
 
-# # Skema untuk menampilkan detail item dalam riwayat transaksi
-class TransactionDetail(BaseModel):
-    quantity: int
-    price_per_item: Decimal
-    product: ProductSchema
+class TransactionDetailCreate(TransactionDetailBase):
+    pass
 
+class TransactionDetailSchema(TransactionDetailBase):
     model_config = ConfigDict(from_attributes=True)
-
-# # --- Skema untuk Transaksi Utama ---
-
-# # Skema untuk menerima data saat membuat transaksi baru
-class TransactionCreate(BaseModel):
-    items: List[TransactionItemCreate]
-
-# # Skema untuk menampilkan data transaksi secara lengkap
-class Transaction(BaseModel):
+    
     id: int
-    total_amount: Decimal
-    created_at: datetime
-    cashier: UserSchema
-    details: List[TransactionDetail]
+    transaction_id: int
 
+# Skema untuk transaksi utama
+class TransactionBase(BaseModel):
+    pass
+
+class TransactionCreate(TransactionBase):
+    details: List[TransactionDetailCreate]
+
+class TransactionSchema(TransactionBase):
     model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    user_id: int
+    total_amount: Decimal
+    timestamp: datetime
+    details: List[TransactionDetailSchema] = []

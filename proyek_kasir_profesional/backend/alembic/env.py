@@ -1,6 +1,5 @@
 # alembic/env.py
-import os
-import sys
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -8,36 +7,49 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# # Menambahkan path 'src' ke dalam path sistem agar kita bisa mengimpor dari src
-sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+# Mengimpor Base dari file database.py
+from src.core.database import Base
 
-# # Impor dari proyek kita
-from core.database import Base
-from core.config import settings
+# Mengimpor semua model Anda di sini agar terdeteksi oleh autogenerate
+from src.domains.users.models import User
+from src.domains.products.models import Product
+from src.domains.transactions.models import Transaction, TransactionDetail
+from src.domains.inventory.models import Supplier, PurchaseOrder, PurchaseOrderDetail
+from src.domains.collaboration.models import ChatMessage # <-- BARIS YANG DITAMBAHKAN
 
-# # Impor semua model Anda di sini agar Base.metadata mengetahuinya
-from domains.users import models as user_models
-from domains.products import models as product_models
-from domains.transactions import models as transaction_models
-from domains.inventory import models as inventory_models # <-- TAMBAHKAN INI
-
-# # Ini adalah konfigurasi Alembic, dihasilkan dari file alembic.ini
+# ini adalah objek Konfigurasi Alembic, yang menyediakan
+# akses ke nilai-nilai dalam file .ini yang sedang digunakan.
 config = context.config
 
-# # Menginterpretasikan file config untuk logging Python.
+# Menginterpretasikan file konfigurasi untuk logging Python.
+# Baris ini pada dasarnya mengatur logger.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# # Menetapkan metadata dari Base kita ke 'target_metadata'
+# tambahkan objek MetaData model Anda di sini
+# untuk dukungan 'autogenerate'
+# dari myapp import mymodel
+# target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
-# # Menambahkan variabel DATABASE_URL dari settings kita ke dalam config Alembic
-config.set_main_option('DATABASE_URL', settings.DATABASE_URL)
+# nilai-nilai lain dari konfigurasi, yang ditentukan oleh kebutuhan env.py,
+# dapat diperoleh di sini:
+# my_important_option = config.get_main_option("my_important_option")
+# ... dll.
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode."""
-    url = config.get_main_option("DATABASE_URL")
+    """Menjalankan migrasi dalam mode 'offline'.
+
+    Ini mengkonfigurasi konteks hanya dengan URL
+    dan bukan Engine, meskipun Engine juga dapat diterima
+    di sini. Dengan melewati Engine, kita bahkan tidak memerlukan
+    DBAPI untuk tersedia.
+
+    Panggilan ke context.execute() akan menulis DDL yang diberikan ke output skrip.
+
+    """
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -50,7 +62,12 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+    """Menjalankan migrasi dalam mode 'online'.
+
+    Dalam skenario ini kita perlu membuat Engine
+    dan mengaitkan koneksi dengan konteks.
+
+    """
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

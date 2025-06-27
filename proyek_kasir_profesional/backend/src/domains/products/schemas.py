@@ -1,30 +1,28 @@
 # backend/src/domains/products/schemas.py
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from decimal import Decimal
+from typing import Optional
 
-# # Skema dasar untuk produk, berisi field yang umum.
 class ProductBase(BaseModel):
     name: str
-    description: Optional[str] = None
     price: Decimal
-
-# # Skema untuk membuat produk baru.
-class ProductCreate(ProductBase):
     stock: int
 
-# # Skema untuk memperbarui produk yang ada.
-# # Semua field bersifat opsional.
+class ProductCreate(ProductBase):
+    pass
+
+# # =================== TAMBAHKAN SKEMA BARU DI SINI ===================
 class ProductUpdate(BaseModel):
+    # # Skema untuk update dibuat berbeda.
+    # # Kita menggunakan Optional[...] = None agar semua field bersifat opsional.
+    # # Ini memungkinkan klien untuk hanya mengirim data yang ingin diubah
+    # # (misalnya, hanya mengubah harga saja).
     name: Optional[str] = None
-    description: Optional[str] = None
     price: Optional[Decimal] = None
     stock: Optional[int] = None
+# # ====================================================================
 
-# # Skema untuk menampilkan data produk dari database.
-class Product(ProductBase):
-    id: int
-    stock: int
-
-    # # Mengizinkan Pydantic membaca dari model ORM SQLAlchemy.
+class ProductSchema(ProductBase):
     model_config = ConfigDict(from_attributes=True)
+    
+    id: int

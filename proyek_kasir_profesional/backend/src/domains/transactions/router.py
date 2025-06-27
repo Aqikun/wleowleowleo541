@@ -1,39 +1,47 @@
 # backend/src/domains/transactions/router.py
-from fastapi import APIRouter, Depends, status
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
 from src.core.database import get_db
+from src.domains.users.models import User
 from src.core.dependencies import get_current_user
-from src.domains.users.models import User as UserModel
 from . import crud, schemas
 
 router = APIRouter(
     prefix="/transactions",
     tags=["Transactions"],
-    dependencies=[Depends(get_current_user)]
 )
 
-@router.post("/", response_model=schemas.Transaction, status_code=status.HTTP_201_CREATED)
-def create_new_transaction(
-    transaction_data: schemas.TransactionCreate,
+# # PERBAIKAN: Mengganti response_model dari schemas.Transaction menjadi schemas.TransactionSchema
+@router.post("/", response_model=schemas.TransactionSchema, status_code=status.HTTP_201_CREATED)
+def create_transaction(
+    transaction: schemas.TransactionCreate,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    # Endpoint untuk membuat transaksi baru.
-    # Menerima daftar belanjaan, memvalidasi, dan mengembalikan detail transaksi.
-    """
-    return crud.create_transaction(db=db, transaction_data=transaction_data, cashier=current_user)
+    try:
+        return crud.create_transaction(
+            db=db, transaction=transaction, user_id=current_user.id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/", response_model=List[schemas.Transaction])
-def read_transaction_history(
-    skip: int = 0, 
-    limit: int = 100, 
-    db: Session = Depends(get_db)
+
+# # PERBAIKAN: Mengganti response_model dari schemas.Transaction menjadi schemas.TransactionSchema
+@router.get("/", response_model=List[schemas.TransactionSchema])
+def read_transactions(
+    skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 ):
-    """
-    # Endpoint untuk melihat riwayat semua transaksi.
-    """
     transactions = crud.get_transactions(db, skip=skip, limit=limit)
     return transactions
+
+
+# # PERBAIKAN: Mengganti response_model dari schemas.Transaction menjadi schemas.TransactionSchema
+@router.get("/{transaction_id}", response_model=schemas.TransactionSchema)
+def read_transaction(transaction_id: int, db: Session = Depends(get_db)):
+    db_transaction = crud.get_transaction(db, transaction_id=transaction_id)
+    if db_transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return db_transaction
