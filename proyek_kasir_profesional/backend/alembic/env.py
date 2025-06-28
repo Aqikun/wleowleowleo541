@@ -1,4 +1,4 @@
-# alembic/env.py
+# nama file: alembic/env.py
 
 from logging.config import fileConfig
 
@@ -8,14 +8,14 @@ from sqlalchemy import pool
 from alembic import context
 
 # Mengimpor Base dari file database.py
-from src.core.database import Base
+from src.core.database import Base, engine # <-- Impor engine dari database
 
 # Mengimpor semua model Anda di sini agar terdeteksi oleh autogenerate
 from src.domains.users.models import User
 from src.domains.products.models import Product
 from src.domains.transactions.models import Transaction, TransactionDetail
-from src.domains.inventory.models import Supplier, PurchaseOrder, PurchaseOrderDetail
-from src.domains.collaboration.models import ChatMessage # <-- BARIS YANG DITAMBAHKAN
+from src.domains.inventory.models import Supplier, PurchaseOrder, PurchaseOrderDetail, StockOpname, StockOpnameDetail
+from src.domains.collaboration.models import ChatMessage
 
 # ini adalah objek Konfigurasi Alembic, yang menyediakan
 # akses ke nilai-nilai dalam file .ini yang sedang digunakan.
@@ -55,6 +55,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        # Aktifkan batch mode untuk dukungan SQLite
+        render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -68,15 +70,15 @@ def run_migrations_online() -> None:
     dan mengaitkan koneksi dengan konteks.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    # Gunakan engine yang sudah diimpor dari core.database
+    connectable = engine
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            # Aktifkan batch mode untuk dukungan SQLite
+            render_as_batch=True 
         )
 
         with context.begin_transaction():
