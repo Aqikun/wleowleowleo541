@@ -1,13 +1,12 @@
 # Lokasi file: src/domains/users/schemas.py
-# PERBAIKAN FINAL: Menambahkan kembali skema 'Token' yang hilang
+# PENAMBAHAN: Field 'force_password_reset'.
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Literal, Optional
 import enum
 
-# --- Skema BARU yang ditambahkan kembali ---
+# --- Skema Otentikasi & Peran ---
 class Token(BaseModel):
-    """Skema untuk respons token JWT."""
     access_token: str
     token_type: str
 
@@ -16,6 +15,7 @@ class UserRole(str, enum.Enum):
     Admin = "Admin"
     Kasir = "Kasir"
 
+# --- Skema Pengguna ---
 class UserBase(BaseModel):
     username: str
     email: EmailStr 
@@ -29,14 +29,21 @@ class UserSchema(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     phone_number: Optional[str] = None
+    is_active: bool
+    force_password_reset: bool # <-- Tambahkan field ini
 
-# --- Skema untuk Fitur Lupa Password (Tetap Ada) ---
+# --- Skema untuk Update ---
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+class UserRoleUpdate(BaseModel):
+    role: UserRole
+
+# --- Skema untuk Fitur Lupa Password ---
 class ForgotPasswordRequest(BaseModel):
-    """Skema untuk permintaan lupa sandi."""
     email: EmailStr
     channel: Literal['email', 'whatsapp']
 
 class ResetPassword(BaseModel):
-    """Skema untuk melakukan reset sandi."""
     token: str
     new_password: str

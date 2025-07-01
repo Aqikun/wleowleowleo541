@@ -46,11 +46,3 @@ def create_reset_token() -> str:
     """
     # Menghasilkan 32 byte acak dan mengonversinya menjadi format heksadesimal yang aman untuk URL
     return secrets.token_hex(32)
-
-def get_reset_token_hash(token: str) -> str:
-    """
-    Membuat HASH dari token reset.
-    Hash inilah yang akan kita simpan di database, bukan token aslinya.
-    """
-    # Kita bisa menggunakan konteks password yang sama untuk meng-hash token
-    return pwd_context.hash(token)

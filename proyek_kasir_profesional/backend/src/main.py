@@ -1,38 +1,29 @@
 # Lokasi file: src/main.py
-# PERBAIKAN: Mendaftarkan router baru untuk otentikasi dan manajemen pengguna
+# # PERBAIKAN: Menghapus baris "from src.main import app" yang menyebabkan circular import.
 
 from fastapi import FastAPI
-# PERBAIKAN: Impor router spesifik yang sudah kita buat dari users.router
-from src.domains.users.router import auth_router, users_router
 
-# Impor router lain yang sudah ada
-from src.domains.products import router as products_router
-from src.domains.transactions import router as transactions_router
-from src.domains.reports import router as reports_router
-from src.domains.inventory import router as inventory_router
-# Tambahkan impor untuk router kolaborasi jika belum ada
-from src.domains.collaboration import router as collaboration_router
+# # Impor router dari masing-masing file yang sudah kita pisahkan. Ini sudah benar.
+from src.domains.users.auth_router import auth_router
+from src.domains.users.users_router import users_router
+from src.domains.products.router import router as products_router
+from src.domains.transactions.router import router as transactions_router
+from src.domains.inventory.router import router as inventory_router
 
 app = FastAPI(
-    title="Aplikasi Kasir Profesional API",
-    description="Dokumentasi API untuk Aplikasi Kasir Profesional.",
+    title="API Kasir Profesional",
+    description="Backend API untuk aplikasi kasir profesional dengan fitur lengkap.",
     version="1.0.0"
 )
 
-# --- Mendaftarkan Router ---
-# Daftarkan router untuk otentikasi (login, forgot password, etc.)
+# # Daftarkan setiap router ke aplikasi utama. Ini juga sudah benar.
 app.include_router(auth_router)
-# Daftarkan router untuk manajemen user (/users)
 app.include_router(users_router)
-
-# Daftarkan router-router lain dari setiap domain
-app.include_router(products_router.router)
-app.include_router(transactions_router.router)
-app.include_router(reports_router.router)
-app.include_router(inventory_router.router)
-app.include_router(collaboration_router.router)
+app.include_router(products_router)
+app.include_router(transactions_router)
+app.include_router(inventory_router)
 
 
-@app.get("/")
+@app.get("/", tags=["Root"])
 def read_root():
-    return {"message": "Selamat datang di API Kasir Profesional"}
+    return {"message": "Selamat datang di API Kasir Profesional v1.0.0"}

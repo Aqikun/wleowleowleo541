@@ -1,10 +1,11 @@
 # Lokasi file: src/domains/users/models.py
-# Versi final dengan tambahan kolom untuk email, no. telp, & reset password
+# PENAMBAHAN: Kolom 'force_password_reset'.
 
-from sqlalchemy import Column, Integer, String, Enum as SQLAlchemyEnum, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Enum as SQLAlchemyEnum, DateTime
 from sqlalchemy.sql import func
 from src.core.database import Base
-from src.domains.users.schemas import UserRole 
+# Ganti impor ini untuk menghindari circular import saat Alembic berjalan
+from .schemas import UserRole as UserRoleSchema
 
 class User(Base):
     """
@@ -17,23 +18,22 @@ class User(Base):
     
     # --- Kolom Identitas & Kontak ---
     username = Column(String, unique=True, index=True, nullable=False)
-    # Email wajib ada, untuk otentikasi dan komunikasi
     email = Column(String, unique=True, index=True, nullable=False)
-    # Nomor telepon (opsional), untuk notifikasi WhatsApp
     phone_number = Column(String, unique=True, index=True, nullable=True)
 
     # --- Kolom Keamanan & Peran ---
     hashed_password = Column(String, nullable=False)
-    role = Column(SQLAlchemyEnum(UserRole), nullable=False, server_default=UserRole.Kasir.name)
+    role = Column(SQLAlchemyEnum(UserRoleSchema), nullable=False, server_default=UserRoleSchema.Kasir.name)
     
-    # --- Kolom untuk Fitur Reset Password ---
-    # Menyimpan hash dari token, bukan token aslinya
+    # --- Kolom Status Akun ---
+    is_active = Column(Boolean, default=True, nullable=False)
+    # # Kolom BARU untuk memaksa reset password
+    force_password_reset = Column(Boolean, default=False, nullable=False)
+    
+    # --- Kolom untuk Fitur Lupa Password ---
     reset_token = Column(String, nullable=True, unique=True) 
-    # Menyimpan waktu kedaluwarsa token
     reset_token_expires_at = Column(DateTime(timezone=True), nullable=True)
     
     # --- Kolom Pelacakan Waktu (Audit Timestamps) ---
-    # Dicatat otomatis saat user pertama kali dibuat
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    # Diperbarui otomatis setiap kali ada perubahan pada data user
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
