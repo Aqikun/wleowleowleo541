@@ -1,4 +1,4 @@
-// # /lib/src/features/authentication/presentation/screens/forgot_password_screen.dart
+// # lib/src/modules/authentication/presentation/screens/forgot_password_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -21,15 +21,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   void _sendResetLink() {
     if (_formKey.currentState!.validate()) {
-      final email = _emailController.text;
-      // # TODO: Panggil BLoC untuk mengirim permintaan reset password ke API
-      print('Sending reset link to: $email');
-
-      // # Tampilkan dialog atau snackbar untuk memberitahu user
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      // # TODO: Panggil BLoC untuk kirim link reset
+      print('Send reset link!');
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
           content: Text(
-              'Jika email $email terdaftar, link reset password akan dikirim.'),
+              'Jika email terdaftar, link reset password akan dikirim.'),
         ),
       );
     }
@@ -50,8 +47,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.lock_reset,
-                    size: 80, color: Colors.deepPurple),
+                const Icon(Icons.lock_reset, size: 80, color: Colors.deepPurple),
                 const SizedBox(height: 24),
                 const Text(
                   'Masukkan email akun Anda. Kami akan mengirimkan link untuk mengatur ulang password Anda.',
@@ -86,12 +82,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('KIRIM LINK RESET'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Kembali ke Login'),
                 ),
               ],
             ),

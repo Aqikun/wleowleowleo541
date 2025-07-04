@@ -1,4 +1,4 @@
-// # /lib/src/features/authentication/presentation/screens/register_screen.dart
+// # lib/src/modules/authentication/presentation/screens/register_screen.dart
 
 import 'package:flutter/material.dart';
 
@@ -10,7 +10,6 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  // # Controller untuk setiap input field
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -19,7 +18,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    // # Selalu dispose semua controller
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -28,17 +26,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _register() {
-    // # Validasi form sebelum melanjutkan
     if (_formKey.currentState!.validate()) {
-      final name = _nameController.text;
-      final email = _emailController.text;
-      final password = _passwordController.text;
-
-      // # TODO: Panggil BLoC/Cubit untuk mengirim data registrasi ke API
-      print(
-          'Register attempt with Name: $name, Email: $email, Password: $password');
-
-      // # Logika untuk loading dan menangani respons server
+      // # TODO: Panggil BLoC untuk registrasi
+      print('Register attempt!');
     }
   }
 
@@ -57,11 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.person_add,
-                    size: 80, color: Colors.deepPurple),
+                const Icon(Icons.person_add, size: 80, color: Colors.deepPurple),
                 const SizedBox(height: 40),
-
-                // # Text Field untuk Nama Lengkap
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
@@ -77,8 +64,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // # Text Field untuk Email
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -98,8 +83,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // # Text Field untuk Password
                 TextFormField(
                   controller: _passwordController,
                   decoration: const InputDecoration(
@@ -119,8 +102,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-
-                // # Text Field untuk Konfirmasi Password
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: const InputDecoration(
@@ -130,10 +111,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   obscureText: true,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Konfirmasi password tidak boleh kosong';
-                    }
-                    // # Cek apakah password cocok
                     if (value != _passwordController.text) {
                       return 'Password tidak cocok';
                     }
@@ -141,10 +118,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
-
-                // # Tombol Daftar
                 ElevatedButton(
                   onPressed: _register,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('DAFTAR'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

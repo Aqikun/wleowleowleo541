@@ -1,28 +1,39 @@
 // # lib/main.dart
 
 import 'package:flutter/material.dart';
-
-// # Impor halaman login yang sudah kita buat
-// # Ganti 'frontend' dengan nama proyek Anda jika berbeda
-import 'package:frontend/src/features/authentication/presentation/screens/login_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/src/core_app/routes/app_router.dart'; // <-- Impor router baru kita
+import 'package:frontend/src/shared/api/api_client.dart';
+import 'package:frontend/src/modules/authentication/domain/auth_repository.dart';
+import 'package:frontend/src/modules/authentication/infrastructure/auth_repository_impl.dart';
+import 'package:frontend/src/modules/authentication/presentation/bloc/auth_bloc.dart';
 
 void main() {
-  runApp(const MyApp());
+  final ApiClient apiClient = ApiClient();
+  final AuthRepository authRepository = AuthRepositoryImpl(apiClient);
+  runApp(MyApp(authRepository: authRepository));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.authRepository});
+  final AuthRepository authRepository;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Aplikasi Kasir Profesional',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return BlocProvider(
+      create: (context) => AuthBloc(authRepository: authRepository),
+      child: MaterialApp(
+        title: 'Aplikasi Kasir Profesional',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        debugShowCheckedModeBanner: false,
+        
+        // # BARIS-BARIS YANG DIPERBARUI
+        onGenerateRoute: AppRouter.generateRoute,
+        initialRoute: AppRouter.loginRoute,
       ),
-      // # Di sini kita tentukan halaman pertama yang akan ditampilkan
-      home: const LoginScreen(),
     );
   }
 }
