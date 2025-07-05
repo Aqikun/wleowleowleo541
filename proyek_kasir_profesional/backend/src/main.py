@@ -1,29 +1,52 @@
-# Lokasi file: src/main.py
-# # PERBAIKAN: Menghapus baris "from src.main import app" yang menyebabkan circular import.
+# backend/app/main.py
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # 1. Impor CORSMiddleware
+from .core.database import engine
+from .models import user_model, product_model, transaction_model, inventory_model
+from .api.v1 import api_router
 
-# # Impor router dari masing-masing file yang sudah kita pisahkan. Ini sudah benar.
-from src.domains.users.auth_router import auth_router
-from src.domains.users.users_router import users_router
-from src.domains.products.router import router as products_router
-from src.domains.transactions.router import router as transactions_router
-from src.domains.inventory.router import router as inventory_router
+# Membuat semua tabel di database jika belum ada
+user_model.Base.metadata.create_all(bind=engine)
+product_model.Base.metadata.create_all(bind=engine)
+transaction_model.Base.metadata.create_all(bind=engine)
+inventory_model.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="API Kasir Profesional",
-    description="Backend API untuk aplikasi kasir profesional dengan fitur lengkap.",
+    title="Proyek Kasir Profesional API",
+    description="API untuk aplikasi kasir profesional dengan fitur kolaborasi realtime.",
     version="1.0.0"
 )
 
-# # Daftarkan setiap router ke aplikasi utama. Ini juga sudah benar.
-app.include_router(auth_router)
-app.include_router(users_router)
-app.include_router(products_router)
-app.include_router(transactions_router)
-app.include_router(inventory_router)
+# 2. Tambahkan middleware CORS di sini
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    # Tambahkan port tempat Flutter Web Anda berjalan jika berbeda atau spesifik
+    # Contoh: "http://localhost:56490" (port bisa berubah-ubah saat development)
+    "http://localhost:9100",  # Untuk Flutter DevTools
+    "http://127.0.0.1",
+]
 
+# Cara terbaik untuk development adalah mengizinkan semua origin dengan wildcard,
+# tapi untuk produksi, sebaiknya daftar originnya spesifik.
+# Untuk development, Anda bisa menyederhanakannya menjadi:
+# origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Mengizinkan origin yang didefinisikan di atas
+    allow_credentials=True,
+    allow_methods=["*"],  # Mengizinkan semua metode (GET, POST, dll)
+    allow_headers=["*"],  # Mengizinkan semua header
+)
+
+# Menyertakan router API utama
+app.include_router(api_router, prefix="/api")
 
 @app.get("/", tags=["Root"])
-def read_root():
-    return {"message": "Selamat datang di API Kasir Profesional v1.0.0"}
+async def read_root():
+    """
+    Endpoint root untuk memeriksa apakah API berjalan.
+    """
+    return {"message": "Selamat datang di API Kasir Profesional!"}

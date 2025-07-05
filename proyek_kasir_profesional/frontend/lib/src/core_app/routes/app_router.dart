@@ -1,8 +1,8 @@
 // # lib/src/core_app/routes/app_router.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/src/modules/authentication/presentation/screens/forgot_password_screen.dart';
-import 'package:frontend/src/modules/authentication/presentation/screens/login_screen.dart';
-import 'package:frontend/src/modules/authentication/presentation/screens/register_screen.dart';
+import 'package:frontend/src/features/authentication/presentation/screens/forgot_password_screen.dart';
+import 'package:frontend/src/features/authentication/presentation/screens/login_screen.dart';
+import 'package:frontend/src/features/authentication/presentation/screens/register_screen.dart';
 
 class AppRouter {
   static const String loginRoute = '/';
