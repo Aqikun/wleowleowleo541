@@ -1,22 +1,38 @@
-// # lib/src/core_app/routes/app_router.dart
+// lib/src/core_app/routes/app_router.dart
+
 import 'package:flutter/material.dart';
+
+// Import untuk Authentication
 import 'package:frontend/src/features/authentication/presentation/screens/forgot_password_screen.dart';
 import 'package:frontend/src/features/authentication/presentation/screens/login_screen.dart';
 import 'package:frontend/src/features/authentication/presentation/screens/register_screen.dart';
 
+// Import untuk Product
+import 'package:frontend/src/features/retail/product/presentation/screens/product_list_screen.dart';
+
 class AppRouter {
+  // Rute Otentikasi
   static const String loginRoute = '/';
   static const String registerRoute = '/register';
   static const String forgotPasswordRoute = '/forgot-password';
 
+  // Rute Produk (BARU)
+  static const String productListRoute = '/products';
+
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // Rute Otentikasi
       case loginRoute:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case registerRoute:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case forgotPasswordRoute:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+
+      // Rute Produk (BARU)
+      case productListRoute:
+        return MaterialPageRoute(builder: (_) => const ProductListScreen());
+
       default:
         return MaterialPageRoute(
             builder: (_) => Scaffold(

@@ -1,16 +1,36 @@
-# backend/app/main.py
+# backend/src/main.py
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware  # 1. Impor CORSMiddleware
-from .core.database import engine
-from .models import user_model, product_model, transaction_model, inventory_model
-from .api.v1 import api_router
+from fastapi.middleware.cors import CORSMiddleware
 
-# Membuat semua tabel di database jika belum ada
-user_model.Base.metadata.create_all(bind=engine)
-product_model.Base.metadata.create_all(bind=engine)
-transaction_model.Base.metadata.create_all(bind=engine)
-inventory_model.Base.metadata.create_all(bind=engine)
+from src.core.database import engine, Base
+
+# ===== Impor router dari setiap domain secara eksplisit =====
+from src.domains.users.auth_router import auth_router
+from src.domains.users.users_router import users_router
+from src.domains.products.router import router as products_router
+from src.domains.transactions.router import router as transactions_router
+from src.domains.inventory.router import router as inventory_router
+from src.domains.reports.router import router as reports_router
+from src.domains.collaboration.router import router as collaboration_router
+# Tambahkan router lain jika ada
+# from src.domains.customers.router import router as customers_router
+# from src.domains.branches.router import router as branches_router
+# from src.domains.subscriptions.router import router as subscriptions_router
+# ==========================================================
+
+# Impor semua model agar tabelnya bisa dibuat
+from src.domains.users import models as user_model
+from src.domains.products import models as product_model
+from src.domains.transactions import models as transaction_model
+from src.domains.inventory import models as inventory_model
+from src.domains.collaboration import models as collaboration_model
+from src.domains.branches import models as branch_model
+from src.domains.customers import models as customer_model
+from src.domains.subscriptions import models as subscription_model
+
+# Membuat semua tabel dari semua model yang diimpor
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Proyek Kasir Profesional API",
@@ -18,31 +38,30 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 2. Tambahkan middleware CORS di sini
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    # Tambahkan port tempat Flutter Web Anda berjalan jika berbeda atau spesifik
-    # Contoh: "http://localhost:56490" (port bisa berubah-ubah saat development)
-    "http://localhost:9100",  # Untuk Flutter DevTools
-    "http://127.0.0.1",
-]
-
-# Cara terbaik untuk development adalah mengizinkan semua origin dengan wildcard,
-# tapi untuk produksi, sebaiknya daftar originnya spesifik.
-# Untuk development, Anda bisa menyederhanakannya menjadi:
-# origins = ["*"]
+# Mengizinkan semua origin untuk development
+origins = ["*"] 
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Mengizinkan origin yang didefinisikan di atas
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Mengizinkan semua metode (GET, POST, dll)
-    allow_headers=["*"],  # Mengizinkan semua header
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Menyertakan router API utama
-app.include_router(api_router, prefix="/api")
+# ===== Daftarkan semua router di sini =====
+API_PREFIX = "/api/v1" 
+
+app.include_router(auth_router, prefix=API_PREFIX, tags=["Authentication"])
+app.include_router(users_router, prefix=API_PREFIX, tags=["Users"])
+app.include_router(products_router, prefix=API_PREFIX, tags=["Products"])
+app.include_router(transactions_router, prefix=API_PREFIX, tags=["Transactions"])
+app.include_router(inventory_router, prefix=API_PREFIX, tags=["Inventory"])
+app.include_router(reports_router, prefix=API_PREFIX, tags=["Reports"])
+app.include_router(collaboration_router, prefix=API_PREFIX, tags=["Collaboration"])
+# Daftarkan router lain di sini jika ada
+# ==========================================
+
 
 @app.get("/", tags=["Root"])
 async def read_root():
