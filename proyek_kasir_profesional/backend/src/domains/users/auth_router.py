@@ -1,9 +1,10 @@
-# Lokasi file: src/domains/users/auth_router.py
-# PERBAIKAN FINAL: Menghilangkan logika hashing untuk reset token.
+# -- KODE UNTUK INTERAKSI LANJUTAN --
+# -- FILE: src/domains/users/auth_router.py --
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+import re # Import library untuk regular expression
 
 from src.core.database import get_db
 from src.core import security
@@ -25,29 +26,45 @@ def register_new_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
 
-@auth_router.post("/token", response_model=schemas.Token)
+@auth_router.post("/token", response_model=schemas.TokenResponse)
 def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user = crud.get_user_by_username(db, username=form_data.username)
+    # === PERUBAHAN UTAMA DI SINI: LOGIKA LOGIN CERDAS ===
+    login_identifier = form_data.username
+    user = None
+    
+    # Cek apakah login_identifier terlihat seperti email
+    if re.match(r"[^@]+@[^@]+\.[^@]+", login_identifier):
+        user = crud.get_user_by_email(db, email=login_identifier)
+    else:
+        user = crud.get_user_by_username(db, username=login_identifier)
+    # =====================================================
+
     if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
     if not user.is_active: raise HTTPException(status_code=400, detail="Inactive user")
     if user.force_password_reset: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Password reset is required for this account.")
+    
+    # Menyertakan peran (role) ke dalam token
     access_token = security.create_access_token(data={"sub": user.username, "role": user.role.value})
-    return {"access_token": access_token, "token_type": "bearer"}
+    
+    # Mengembalikan data user bersama dengan token
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "user": user
+    }
 
 @auth_router.post("/forgot-password", status_code=status.HTTP_200_OK)
 def forgot_password(request: schemas.ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = crud.get_user_by_email(db, email=request.email)
     if user:
         raw_token = security.create_reset_token()
-        # Langsung simpan token asli, tanpa hash
         crud.set_password_reset_token(db=db, user=user, token=raw_token)
         background_tasks.add_task(send_password_reset_notification, user.email, raw_token, request.channel)
     return {"message": "If an account with that email exists, a password reset link has been sent."}
 
 @auth_router.post("/reset-password", status_code=status.HTTP_200_OK)
 def reset_password(request: schemas.ResetPassword, db: Session = Depends(get_db)):
-    # Langsung cari pengguna dengan token asli dari request
     user = crud.get_user_by_reset_token(db, token=request.token)
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")

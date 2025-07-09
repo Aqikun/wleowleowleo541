@@ -1,5 +1,9 @@
+// -- KODE UNTUK INTERAKSI LANJUTAN --
+// -- FILE: lib/src/features/authentication/presentation/screens/login_screen.dart --
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // <-- 1. IMPORT DIPERBAIKI
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/src/core_app/routes/app_router.dart';
 import 'package:frontend/src/features/authentication/presentation/bloc/auth_bloc.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -7,12 +11,47 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: LoginForm(),
+            padding: const EdgeInsets.all(24.0),
+            // === PERUBAHAN UTAMA: Menambahkan BlocListener ===
+            child: BlocListener<AuthBloc, AuthState>(
+              listener: (context, state) {
+                // Dengarkan HANYA state AuthLoginSuccess
+                if (state is AuthLoginSuccess) {
+                  // Tampilkan pesan sukses sebentar
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      const SnackBar(
+                        content: Text('Login Berhasil!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  // Navigasi ke HomeScreen dan hapus semua rute sebelumnya
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRouter.homeRoute,
+                    (route) => false, // Predikat ini menghapus semua rute
+                  );
+                }
+                // Tampilkan pesan error jika login gagal
+                if (state is AuthFailure) {
+                   ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text('Login Gagal: ${state.message}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                }
+              },
+              child: const LoginForm(),
+            ),
+            // ============================================
           ),
         ),
       ),
@@ -58,7 +97,6 @@ class _LoginFormState extends State<LoginForm> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 2. NAMA ICON DIPERBAIKI
           const Icon(Icons.lock_outline, size: 80, color: Colors.blueAccent),
           const SizedBox(height: 8),
           const Text(
@@ -101,9 +139,10 @@ class _LoginFormState extends State<LoginForm> {
             },
           ),
           const SizedBox(height: 24),
+          // BlocBuilder sekarang hanya fokus pada status loading
           BlocBuilder<AuthBloc, AuthState>(
+            buildWhen: (previous, current) => current is AuthLoading || previous is AuthLoading,
             builder: (context, state) {
-              // 3. NAMA STATE DIPERBAIKI
               if (state is AuthLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -123,13 +162,15 @@ class _LoginFormState extends State<LoginForm> {
             children: [
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/forgot-password');
+                  // Menggunakan AppRouter untuk navigasi
+                  Navigator.pushNamed(context, AppRouter.forgotPasswordRoute);
                 },
                 child: const Text('Lupa Password?'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/register');
+                  // Menggunakan AppRouter untuk navigasi
+                  Navigator.pushNamed(context, AppRouter.registerRoute);
                 },
                 child: const Text('Buat Akun'),
               ),

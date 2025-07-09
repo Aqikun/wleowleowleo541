@@ -1,4 +1,5 @@
-// lib/main.dart
+// -- KODE UNTUK INTERAKSI LANJUTAN --
+// -- FILE: lib/main.dart --
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,7 +59,10 @@ class MyApp extends StatelessWidget {
         ),
         debugShowCheckedModeBanner: false,
         onGenerateRoute: AppRouter.generateRoute,
-        initialRoute: AppRouter.productListRoute, // Ini akan kita ubah nanti
+        // === PERUBAHAN UTAMA DI SINI ===
+        // Mengubah rute awal ke halaman login
+        initialRoute: AppRouter.loginRoute, 
+        // ==============================
       ),
     );
   }

@@ -1,4 +1,5 @@
-// lib/src/core_app/routes/app_router.dart
+// -- KODE UNTUK INTERAKSI LANJUTAN --
+// -- FILE: lib/src/core_app/routes/app_router.dart --
 
 import 'package:flutter/material.dart';
 
@@ -10,14 +11,25 @@ import 'package:frontend/src/features/authentication/presentation/screens/regist
 // Import untuk Product
 import 'package:frontend/src/features/retail/product/presentation/screens/product_list_screen.dart';
 
+// === TAMBAHAN BARU ===
+// Import untuk Home
+import 'package:frontend/src/features/home/presentation/screens/home_screen.dart';
+// =====================
+
 class AppRouter {
   // Rute Otentikasi
   static const String loginRoute = '/';
   static const String registerRoute = '/register';
   static const String forgotPasswordRoute = '/forgot-password';
 
-  // Rute Produk (BARU)
+  // Rute Produk
   static const String productListRoute = '/products';
+
+  // === TAMBAHAN BARU ===
+  // Rute Home
+  static const String homeRoute = '/home';
+  // =====================
+
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -29,9 +41,14 @@ class AppRouter {
       case forgotPasswordRoute:
         return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
 
-      // Rute Produk (BARU)
+      // Rute Produk
       case productListRoute:
         return MaterialPageRoute(builder: (_) => const ProductListScreen());
+
+      // === TAMBAHAN BARU ===
+      case homeRoute:
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
+      // =====================
 
       default:
         return MaterialPageRoute(

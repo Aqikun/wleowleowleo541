@@ -1,10 +1,12 @@
-// lib/src/features/authentication/presentation/bloc/auth_bloc.dart
+// -- KODE UNTUK INTERAKSI LANJUTAN --
+// -- FILE: lib/src/features/authentication/presentation/bloc/auth_bloc.dart --
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:frontend/src/shared/domain/exceptions/auth_exceptions.dart';
 import 'package:frontend/src/features/authentication/domain/auth_repository.dart';
 
+// Penting: Pastikan file event dan state Anda diimpor dengan benar
 part 'auth_event.dart';
 part 'auth_state.dart';
 
@@ -16,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         super(AuthInitial()) {
     on<LoginButtonPressed>(_onLoginButtonPressed);
     on<RegisterButtonPressed>(_onRegisterButtonPressed);
+    // Tambahkan handler untuk event logout nanti
   }
 
   Future<void> _onLoginButtonPressed(
@@ -25,13 +28,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _authRepository.login(event.email, event.password);
-      emit(AuthSuccess());
+      // === PERUBAHAN UTAMA DI SINI ===
+      // Mengeluarkan state yang lebih spesifik untuk login sukses
+      emit(AuthLoginSuccess());
+      // ==============================
     } on InvalidCredentialsException {
       emit(const AuthFailure(message: 'Email atau password salah.'));
     } on NetworkException {
       emit(const AuthFailure(message: 'Tidak ada koneksi internet.'));
     } catch (e) {
-      // Fallback untuk error yang tidak terduga
       emit(AuthFailure(message: 'Terjadi kesalahan: ${e.toString()}'));
     }
   }
@@ -50,11 +55,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(RegisterSuccess());
     } on EmailAlreadyInUseException {
-      emit(const RegisterFailure(message: 'Email yang Anda masukkan sudah terdaftar.'));
+      emit(const RegisterFailure(
+          message: 'Email yang Anda masukkan sudah terdaftar.'));
     } on NetworkException {
       emit(const RegisterFailure(message: 'Tidak ada koneksi internet.'));
     } catch (e) {
-      // Fallback untuk error yang tidak terduga
       emit(RegisterFailure(message: 'Registrasi gagal: ${e.toString()}'));
     }
   }

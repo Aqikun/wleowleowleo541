@@ -1,11 +1,12 @@
-# Lokasi file: src/domains/users/schemas.py
-# PENAMBAHAN: Field 'force_password_reset'.
+# -- KODE UNTUK INTERAKSI LANJUTAN --
+# -- FILE: src/domains/users/schemas.py --
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Literal, Optional
 import enum
 
 # --- Skema Otentikasi & Peran ---
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -16,6 +17,7 @@ class UserRole(str, enum.Enum):
     Kasir = "Kasir"
 
 # --- Skema Pengguna ---
+
 class UserBase(BaseModel):
     username: str
     email: EmailStr 
@@ -27,10 +29,18 @@ class UserCreate(UserBase):
 
 class UserSchema(UserBase):
     model_config = ConfigDict(from_attributes=True)
+
     id: int
     phone_number: Optional[str] = None
     is_active: bool
-    force_password_reset: bool # <-- Tambahkan field ini
+    force_password_reset: bool
+
+# === PERUBAHAN UTAMA DI SINI ===
+# Skema baru untuk respons login yang lebih kaya
+class TokenResponse(Token):
+    user: UserSchema
+# ==============================
+
 
 # --- Skema untuk Update ---
 class UserStatusUpdate(BaseModel):
